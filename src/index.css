@@ -1,0 +1,163 @@
+@import "tailwindcss";
+
+@theme {
+  --font-cinzel: "Cinzel", Georgia, serif;
+  --font-lora: "Lora", Georgia, serif;
+
+  --color-obsidian: #1E140D;
+  --color-sandstone: #D9B98A;
+  --color-gold: #C9993A;
+  --color-night: #1B2A41;
+  --color-parchment: #EBD9B4;
+  --color-torch: #E8883A;
+}
+
+@layer base {
+  html,
+  body {
+    background-color: #1E140D;
+    color: #EBD9B4;
+    font-family: var(--font-lora);
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: #C9993A transparent;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #C9993A transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: #C9993A;
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: #E8883A;
+  }
+}
+
+/* Performant GPU-composited animations for the low-poly title scene */
+@keyframes wheatSwayBack {
+  0%, 100% {
+    transform: skewX(-1.6deg) rotate(-0.8deg);
+  }
+  50% {
+    transform: skewX(2.1deg) rotate(1.1deg);
+  }
+}
+
+@keyframes wheatSwayMid {
+  0%, 100% {
+    transform: skewX(2.2deg) rotate(1deg);
+  }
+  50% {
+    transform: skewX(-2.5deg) rotate(-1.3deg);
+  }
+}
+
+@keyframes wheatSwayFront {
+  0%, 100% {
+    transform: skewX(-2.8deg) rotate(-1.4deg);
+  }
+  50% {
+    transform: skewX(3deg) rotate(1.6deg);
+  }
+}
+
+@keyframes sunBreathe {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.72;
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 0.92;
+  }
+}
+
+@keyframes dustFloat {
+  0% {
+    transform: translate3d(0, 12px, 0) scale(0.85);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.75;
+  }
+  80% {
+    opacity: 0.65;
+  }
+  100% {
+    transform: translate3d(var(--dust-dx, 28px), var(--dust-dy, -90px), 0) scale(1.1);
+    opacity: 0;
+  }
+}
+
+@keyframes ctaPulseGlow {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.45;
+  }
+  50% {
+    transform: scale(1.04);
+    opacity: 0.85;
+  }
+}
+
+.animate-wheat-back {
+  transform-box: fill-box;
+  transform-origin: bottom center;
+  animation: wheatSwayBack 6.5s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-wheat-mid {
+  transform-box: fill-box;
+  transform-origin: bottom center;
+  animation: wheatSwayMid 5.2s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-wheat-front {
+  transform-box: fill-box;
+  transform-origin: bottom center;
+  animation: wheatSwayFront 4.4s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-sun-breathe {
+  transform-origin: center;
+  animation: sunBreathe 7s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.animate-dust {
+  animation: dustFloat var(--dust-dur, 11s) linear var(--dust-delay, 0s) infinite;
+  will-change: transform, opacity;
+}
+
+.animate-cta-glow {
+  animation: ctaPulseGlow 2.8s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-wheat-back,
+  .animate-wheat-mid,
+  .animate-wheat-front,
+  .animate-sun-breathe,
+  .animate-dust,
+  .animate-cta-glow {
+    animation: none !important;
+  }
+}

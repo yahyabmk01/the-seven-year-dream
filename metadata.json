@@ -1,0 +1,6 @@
+{
+  "name": "The Seven-Year Dream",
+  "description": "An interactive decision game of foresight, public trust, and crisis strategy inspired by the story of Yusuf.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
