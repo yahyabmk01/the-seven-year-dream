@@ -300,64 +300,111 @@ export function SceneScreen({
             role="dialog"
             aria-modal="true"
             aria-label="Decision result"
-            className="fixed inset-0 z-30 flex items-center justify-center bg-[#0B0704]/90 px-4 backdrop-blur-sm"
+            className="fixed inset-0 z-30 flex flex-col items-center justify-center gap-6 bg-[#0B0704]/92 px-4 py-8 backdrop-blur-sm"
           >
+            {/* Header */}
             <motion.div
-              initial={{ scale: prefersReduced ? 1 : 0.96, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: prefersReduced ? 1 : 0.98, opacity: 0 }}
-              transition={{ duration: prefersReduced ? 0.2 : 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="w-full max-w-lg rounded-sm border-2 border-[#C9993A] bg-[#1E140D]/96 p-6 sm:p-8 text-center shadow-[0_24px_70px_rgba(0,0,0,0.88)]"
+              initial={{ opacity: 0, y: prefersReduced ? 0 : -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: prefersReduced ? 0.2 : 0.4, delay: 0.1 }}
+              className="text-center"
             >
-              <div className="inline-block rounded-sm border border-[#C9993A]/60 bg-[#2B1D14] px-4 py-1.5 font-cinzel text-xs sm:text-sm font-bold tracking-[0.08em] text-[#EBD9B4]">
-                Choice {lastEntry.choiceId} Selected
+              <div className="inline-block rounded-sm border border-[#C9993A]/60 bg-[#2B1D14] px-5 py-2 font-cinzel text-sm font-bold tracking-[0.1em] text-[#EBD9B4]">
+                The Council Has Decided
               </div>
-
-              <div className="mt-6 flex items-center justify-center gap-5 sm:gap-8">
-                {SEATS.map((seat) => {
-                  const player = players.find((p) => p.seat === seat);
-                  const picked = overlayVotesMap[String(seat)] || null;
-                  const matchedWinner = Boolean(picked && picked === lastEntry.choiceId);
-
-                  return (
-                    <div key={seat} className="flex flex-col items-center gap-1.5">
-                      <PlayerAvatar
-                        seat={seat}
-                        occupied={Boolean(player)}
-                        revealedChoice={picked}
-                        highlightWinner={matchedWinner}
-                        size="lg"
-                        playerName={player?.name}
-                      />
-                      <span className="font-lora text-xs text-[#D9B98A] max-w-[76px] truncate">
-                        {player ? player.name : `Seat ${seat}`}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="mt-6 rounded-sm border border-[#C9993A]/50 bg-[#F2E5C7] px-4 py-3.5 text-[#1E140D]">
-                <p className="font-lora text-base sm:text-lg font-semibold leading-snug">
-                  Majority chose: {lastEntry.choiceText}
+              {decidedByNote && (
+                <p className="mt-2 font-cinzel text-xs font-bold tracking-[0.06em] text-[#E8883A] uppercase">
+                  {decidedByNote}
                 </p>
-                {resolvedResultText && (
-                  <p className="mt-2 font-lora italic text-sm sm:text-base leading-relaxed text-[#3A2414]">
-                    {resolvedResultText}
-                  </p>
-                )}
-                {decidedByNote && (
-                  <p className="mt-1.5 font-cinzel text-xs font-bold tracking-[0.06em] text-[#8B3A1E] uppercase">
-                    {decidedByNote}
-                  </p>
-                )}
-                <p className="mt-1.5 font-lora text-xs sm:text-sm text-[#5C3A21]">
-                  {overlayTotalVoters > 0
-                    ? `${overlayWinnerCount} out of ${overlayTotalVoters} voted for option ${lastEntry.choiceId}.`
-                    : 'No votes were cast before time expired.'}
-                </p>
-              </div>
+              )}
             </motion.div>
+
+            {/* Choice Cards — one per scene choice, winner glows */}
+            {(() => {
+              const fallbackSceneForResult = lastEntry ? (getSceneById(lastEntry.scene) as StoryScene | null) : null;
+              const resultChoices = fallbackSceneForResult?.choices ?? [];
+              return (
+                <motion.div
+                  initial={{ opacity: 0, y: prefersReduced ? 0 : 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: prefersReduced ? 0.2 : 0.45, delay: 0.18 }}
+                  className="grid w-full max-w-4xl grid-cols-1 gap-4 md:grid-cols-3"
+                >
+                  {resultChoices.map((choice) => {
+                    const isWinner = choice.id === lastEntry.choiceId;
+                    const votersForThis = Object.entries(overlayVotesMap)
+                      .filter(([, c]) => c === choice.id)
+                      .length;
+
+                    return (
+                      <div
+                        key={choice.id}
+                        className={`relative rounded-sm transition-all duration-500 ${
+                          isWinner
+                            ? 'ring-2 ring-[#C9993A] shadow-[0_0_40px_rgba(201,153,58,0.55),0_0_80px_rgba(201,153,58,0.25)]'
+                            : 'opacity-45'
+                        }`}
+                      >
+                        <ChoiceCard
+                          choiceId={choice.id}
+                          title={choice.title || `Option ${choice.id}`}
+                          description={choice.text}
+                          bgImageUrl={choice.bgImageUrl}
+                          selected={isWinner}
+                          disabled
+                        />
+                        {/* Player vote pips below each card */}
+                        <div className="mt-2 flex justify-center gap-2">
+                          {SEATS.map((seat) => {
+                            const player = players.find((p) => p.seat === seat);
+                            if (!player) return null;
+                            const voted = overlayVotesMap[String(seat)] === choice.id;
+                            return (
+                              <div key={seat} className="flex flex-col items-center gap-1">
+                                <PlayerAvatar
+                                  seat={seat}
+                                  occupied
+                                  size="sm"
+                                  playerName={player.name}
+                                  highlightWinner={voted && isWinner}
+                                />
+                                {voted && (
+                                  <span className={`font-cinzel text-[10px] font-bold tracking-wider ${isWinner ? 'text-[#EBD9B4]' : 'text-[#D9B98A]/60'}`}>
+                                    {player.name.split(' ')[0]}
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                        {votersForThis > 0 && (
+                          <p className={`mt-1.5 text-center font-cinzel text-xs tracking-wider ${isWinner ? 'text-[#C9993A]' : 'text-[#D9B98A]/50'}`}>
+                            {votersForThis} vote{votersForThis !== 1 ? 's' : ''}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </motion.div>
+              );
+            })()}
+
+            {/* Result text */}
+            {resolvedResultText && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: prefersReduced ? 0.2 : 0.4, delay: 0.35 }}
+                className="w-full max-w-xl rounded-sm border border-[#C9993A]/50 bg-[#F2E5C7]/95 px-5 py-4 text-center text-[#1E140D]"
+              >
+                <p className="font-lora text-base sm:text-lg font-semibold leading-snug">
+                  {lastEntry.choiceText}
+                </p>
+                <p className="mt-2 font-lora italic text-sm leading-relaxed text-[#3A2414]">
+                  {resolvedResultText}
+                </p>
+              </motion.div>
+            )}
           </motion.div>
         )}
 

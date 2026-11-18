@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bot, Check, Copy, Loader2, LogOut, Play, Trash2 } from 'lucide-react';
+import { Check, Copy, Loader2, LogOut, Play } from 'lucide-react';
 import { motion } from 'motion/react';
 import { fadeOutForVideo } from '../lib/ambientMusic';
 import { playStoneSeal, playStoneTap } from '../lib/soundFx';
@@ -36,7 +36,6 @@ export function LobbyScreen({
   const [copied, setCopied] = useState(false);
   const [starting, setStarting] = useState(false);
   const [leaving, setLeaving] = useState(false);
-  const [botBusy, setBotBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const isHost = room.host_id === myUserId;
@@ -83,33 +82,8 @@ export function LobbyScreen({
     }
   };
 
-  const handleAddBot = async () => {
-    if (!isHost || players.length >= 3 || botBusy) return;
-    playStoneTap();
-    setError(null);
-    setBotBusy(true);
-    try {
-      await onAddBot();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to add test bot.');
-    } finally {
-      setBotBusy(false);
-    }
-  };
-
-  const handleRemoveBots = async () => {
-    if (!isHost || activeBotCount === 0 || botBusy) return;
-    playStoneTap();
-    setError(null);
-    setBotBusy(true);
-    try {
-      await onRemoveBots();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to remove test bots.');
-    } finally {
-      setBotBusy(false);
-    }
-  };
+  const handleAddBot = async () => { await onAddBot(); };
+  const handleRemoveBots = async () => { await onRemoveBots(); };
 
   return (
     <motion.main
@@ -264,40 +238,9 @@ export function LobbyScreen({
                 )}
               </motion.button>
 
-              {/* Testing Bot Controls */}
-              <div className="flex flex-wrap gap-2.5">
-                {players.length < 3 && (
-                  <button
-                    type="button"
-                    disabled={botBusy || starting}
-                    onClick={handleAddBot}
-                    className="cursor-pointer inline-flex min-h-[42px] flex-1 items-center justify-center gap-2 rounded-sm border border-[#C9993A]/55 bg-[#1B2A41]/85 px-4 py-2 font-cinzel text-xs sm:text-sm font-semibold tracking-[0.08em] text-[#EBD9B4] transition-colors hover:border-[#EBD9B4]/80 hover:bg-[#243856] disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C9993A] whitespace-nowrap"
-                  >
-                    {botBusy ? (
-                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                    ) : (
-                      <Bot className="h-4 w-4 text-[#C9993A]" aria-hidden="true" />
-                    )}
-                    <span>Add Test Bot</span>
-                  </button>
-                )}
-
-                {activeBotCount > 0 && (
-                  <button
-                    type="button"
-                    disabled={botBusy || starting}
-                    onClick={handleRemoveBots}
-                    className="cursor-pointer inline-flex min-h-[42px] items-center justify-center gap-1.5 rounded-sm border border-[#C9993A]/40 bg-[#291C13] px-3.5 py-2 font-cinzel text-xs font-semibold tracking-[0.08em] text-[#D9B98A] transition-colors hover:border-[#E8883A]/70 hover:text-[#EBD9B4] disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C9993A] whitespace-nowrap"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                    <span>Remove Bots</span>
-                  </button>
-                )}
-              </div>
-
               {players.length < 2 && (
                 <p className="text-center font-lora text-xs text-[#D9B98A]">
-                  At least 2 players are needed to begin (or add a test bot above).
+                  At least 2 players are needed to begin.
                 </p>
               )}
             </>
